@@ -79,7 +79,7 @@ def play():
         #     draw_text(str(countdown), 35, WHITE, WIDTH//2, 20)
 
         def set_level_speed(level):
-            speeds = [3000, 2000, 1000]
+            speeds = [3000, 2000, 3000]
             return speeds[level - 1] if 0 <= level - 1 < len(speeds) else speeds[0]
 
         pygame.init()
@@ -93,15 +93,16 @@ def play():
         mouse_pos = (0, 0)
         pygame.mouse.set_visible(False)
         countdown = 5
-        level_durations = [0,10, 10, 10]
+        level_durations = [10000, 10000, 10000]
         current_level = 1
         last_update = pygame.time.get_ticks()
         score = 0
         last_mole_move = pygame.time.get_ticks()
         current_sc = 0
         pos = 0
-        # game_countdown = 30
-        # last_countdown = pygame.time.get_ticks()
+        game_start_time = 0
+        game_over_time = 0
+        
 
         # load sound
         bonk = pygame.mixer.Sound(path.join(audio_folder, 'bonk.mp3'))
@@ -141,9 +142,13 @@ def play():
                             bonk.play()
                             current_sc += 1
                             score += 1
-                            pos = random_mole_position()
-                        else:
-                            pos = random_mole_position()
+                            if score >= 2:
+                                score = 0
+                                countdown = 6
+                                current_level += 1
+                                if current_level > 3:
+                                    countdown = False
+                                    game_over = True
                         hammer_img = hammer[1]
                         hammer_surface = pygame.transform.scale(hammer_img, (200, 200))
                         if not game_over:
@@ -166,33 +171,37 @@ def play():
                     if not game_over:
                         pos = random_mole_position()
                     screen.fill(BG)
-                    draw_text(str(countdown), 40, WHITE, WIDTH//2, 20)
+                    # draw_text(str(countdown), 40, WHITE, WIDTH//2, 20)
+                    draw_text(str(countdown), 40, WHITE, WIDTH//2, HEIGHT//2 - 10)
+                    # draw_text(f"Score: {current_sc}", 35, WHITE, 10, 25)
                 else:
                     screen.fill(BG)
                     draw_text(str(countdown), 40, WHITE, WIDTH//2, HEIGHT//2 - 10)
-                    draw_text(f"Score: {current_sc}", 35, WHITE, 10, 25)
+                    
+                    # draw_text(f"Score: {current_sc}", 35, WHITE, 10, 25)
             else:
-                # draw_countdown()
-                if now - last_update < level_durations[current_level] * 1000:
+                if not game_over:
+                    if game_start_time == 0:
+                        game_start_time = now
                     screen.fill(BG)
-                    draw_text(str(level_durations[current_level] - int((now - last_update) / 1000)), 40, WHITE, WIDTH//2, 20)
-                else:
-                    last_update = now
-                    countdown = 5
-                    current_level += 1
-                    if current_level == 1:
-                        level_duration = 10
-                    elif current_level == 2:
-                        level_duration = 15
-                    elif current_level == 3:
-                        level_duration = 20
-                    elif current_level == 4:
+                    draw_text("Level {}".format(current_level), 40, WHITE, WIDTH // 2, 20)
+                    draw_text("Score: {}".format(score), 30, WHITE, WIDTH // 2 - 40, HEIGHT // 2)
+                    level_durations[current_level - 1] -= clock.get_time()
+                    # if level_duration[current_level - 1] <= 0:
+                    if level_durations[current_level - 1] <= 0 and score < 10:
                         game_over = True
-                        countdown = 1000
+                        last_update = now
+                        current_level += 1
+                        # countdown = 5 if current_level <= 3 else False
+                        if current_level > 3:
+                            game_over = True
+                ##############TOLONG INI DIMUNCULIN###########
+                # else:    
+                #     screen.fill(BG)
+                #     draw_text("Game Over!", 40, WHITE, WIDTH // 2, HEIGHT // 2 - 60)
+                #     draw_text("Total Game Duration: {:.2f} seconds".format((game_start_time - game_over_time) / 1000), 30, WHITE, WIDTH // 2 - 180, HEIGHT // 2 - 20)
+               
 
-            # mole_rect.y -= 3
-            # if mole_rect.y <= pos:
-            #     mole_rect.y = pos
             
             if now - last_mole_move > set_level_speed(current_level) and countdown == 0 and not game_over:
                 pos = random_mole_position()
@@ -204,16 +213,12 @@ def play():
 
             if game_over:
                 screen.fill(BG)
-                draw_text("Skor: {}".format(score), 40, WHITE, WIDTH//2 - 60, HEIGHT//2 - 60)
+                # draw_text("Skor: {}".format(score), 40, WHITE, WIDTH//2 - 60, HEIGHT//2 - 60)
                 draw_text("Klik EXIT untuk keluar", 30, BLACK, WIDTH//2 - 120, HEIGHT//2 )
-
-            # Gambar tombol keluar
                 screen.blit(exit_button, exit_button_rect)
-
-            # Periksa klik tombol keluar
                 if exit_button_rect.collidepoint(mouse_pos) and pygame.mouse.get_pressed()[0]:
                     run = False
-
+           
             draw_land()
             screen.blit(hammer_surface, hammer_rect)
             pygame.display.flip()
