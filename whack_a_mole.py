@@ -59,7 +59,6 @@ def play():
                 x = 0
                 for col in range(COL):
                     screen.blit(land, (x * 200 + 140, y * 200 + 100))
-                    # pygame.draw.rect(screen, BG, (x * 200 + 140, y * 200 + 190, 100, 120))
                     rect = pygame.Rect(x * 200 + 140, y * 200 + 190, 100, 50)
                     land_list_rect.append(rect)
                     x += 1
@@ -69,14 +68,6 @@ def play():
             font = pygame.font.SysFont(None, font_size)
             font_surface = font.render(text, True, font_color)
             screen.blit(font_surface, (x, y))
-
-        # def draw_countdown():
-        #     global game_countdown, last_countdown
-        #     now = pygame.time.get_ticks()
-        #     if now - last_countdown > 1000:
-        #         last_countdown = now 
-        #         game_countdown -= 1
-        #     draw_text(str(countdown), 35, WHITE, WIDTH//2, 20)
 
         def set_level_speed(level):
             speeds = [3000, 2000, 3000]
@@ -93,7 +84,7 @@ def play():
         mouse_pos = (0, 0)
         pygame.mouse.set_visible(False)
         countdown = 5
-        level_durations = [10000, 10000, 10000]
+        level_durations = [6000, 5000, 4000]
         current_level = 1
         last_update = pygame.time.get_ticks()
         score = 0
@@ -103,7 +94,6 @@ def play():
         game_start_time = 0
         game_over_time = 0
         
-
         # load sound
         bonk = pygame.mixer.Sound(path.join(audio_folder, 'bonk.mp3'))
 
@@ -128,6 +118,7 @@ def play():
         exit_button_rect = exit_button.get_rect()
         exit_button_rect.center = (WIDTH // 2 - 9, HEIGHT // 2 + 130)
 
+        # main game
         run = True
         show_score = False
         game_over = False
@@ -142,11 +133,12 @@ def play():
                             bonk.play()
                             current_sc += 1
                             score += 1
-                            if score >= 2:
+                            if score >= 5 and countdown <= 0:
                                 score = 0
-                                countdown = 6
+                                countdown = 5
                                 current_level += 1
                                 if current_level > 3:
+                                    current_level = 3
                                     countdown = False
                                     game_over = True
                         hammer_img = hammer[1]
@@ -171,14 +163,10 @@ def play():
                     if not game_over:
                         pos = random_mole_position()
                     screen.fill(BG)
-                    # draw_text(str(countdown), 40, WHITE, WIDTH//2, 20)
                     draw_text(str(countdown), 40, WHITE, WIDTH//2, HEIGHT//2 - 10)
-                    # draw_text(f"Score: {current_sc}", 35, WHITE, 10, 25)
                 else:
                     screen.fill(BG)
                     draw_text(str(countdown), 40, WHITE, WIDTH//2, HEIGHT//2 - 10)
-                    
-                    # draw_text(f"Score: {current_sc}", 35, WHITE, 10, 25)
             else:
                 if not game_over:
                     if game_start_time == 0:
@@ -187,34 +175,34 @@ def play():
                     draw_text("Level {}".format(current_level), 40, WHITE, WIDTH // 2, 20)
                     draw_text("Score: {}".format(score), 30, WHITE, WIDTH // 2 - 40, HEIGHT // 2)
                     level_durations[current_level - 1] -= clock.get_time()
-                    # if level_duration[current_level - 1] <= 0:
                     if level_durations[current_level - 1] <= 0 and score < 10:
                         game_over = True
                         last_update = now
                         current_level += 1
-                        # countdown = 5 if current_level <= 3 else False
                         if current_level > 3:
                             game_over = True
-                ##############TOLONG INI DIMUNCULIN###########
-                # else:    
-                #     screen.fill(BG)
-                #     draw_text("Game Over!", 40, WHITE, WIDTH // 2, HEIGHT // 2 - 60)
-                #     draw_text("Total Game Duration: {:.2f} seconds".format((game_start_time - game_over_time) / 1000), 30, WHITE, WIDTH // 2 - 180, HEIGHT // 2 - 20)
-               
 
+                            if level_durations[current_level - 1] <= 0:
+                                if score < 5:
+                                    game_over = True
+                                    last_update = now
+                                else:
+                                    if current_level == 3:
+                                        game_over = True
             
             if now - last_mole_move > set_level_speed(current_level) and countdown == 0 and not game_over:
                 pos = random_mole_position()
                 last_mole_move = now
 
-            if countdown == 0:
+            if countdown == 0 and not game_over:
                 screen.blit(mole, mole_rect)
                 draw_land()
 
             if game_over:
                 screen.fill(BG)
-                # draw_text("Skor: {}".format(score), 40, WHITE, WIDTH//2 - 60, HEIGHT//2 - 60)
-                draw_text("Klik EXIT untuk keluar", 30, BLACK, WIDTH//2 - 120, HEIGHT//2 )
+                draw_text("Game Over!", 40, WHITE, WIDTH // 2 - 100, HEIGHT // 2 - 60)
+                # draw_text("Total Game Duration: {:.2f} seconds".format((game_start_time - game_over_time) / 1000), 30, WHITE, WIDTH // 2 - 180, HEIGHT // 2 - 20)
+                draw_text("Click EXIT to quit", 30, WHITE, WIDTH // 2 - 100, HEIGHT // 2)
                 screen.blit(exit_button, exit_button_rect)
                 if exit_button_rect.collidepoint(mouse_pos) and pygame.mouse.get_pressed()[0]:
                     run = False
@@ -225,41 +213,6 @@ def play():
             clock.tick(FPS)
 
         pygame.quit()
-
-# def main_menu():
-#     pygame.display.set_caption("Menu")
-
-#     while True:
-#         SCREEN.blit(BG, (0,0))
-
-#         MENU_MOUSE_POS = pygame.mouse.get_pos()
-
-#         MENU_TEXT = get_font(100).render("MAIN MENU", True, "#b68f40")
-#         MENU_RECT = MENU_TEXT.get_rect(center=(400, 200))
-
-#         PLAY_BUTTON = Button(image=None, pos=(400,250),
-#                              text_input="PLAY", font=get_font(75), base_color="#d7fcd4", hovering_color="orange")
-#         QUIT_BUTTON = Button(image=None, pos=(400,300),
-#                              text_input="QUIT", font=get_font(75), base_color="#d7fcd4", hovering_color="orange")
-        
-#         SCREEN.blit(MENU_TEXT, MENU_RECT)
-
-#         for button in [PLAY_BUTTON, QUIT_BUTTON]:
-#             button.changeColor(MENU_MOUSE_POS)
-#             button.update(SCREEN)
-
-#         for event in pygame.event.get():
-#             if event.type == pygame.QUIT:
-#                 pygame.quit()
-#                 sys.exit()
-#             if event.type == pygame.MOUSEBUTTONDOWN:
-#                 if PLAY_BUTTON.checkForInput(MENU_MOUSE_POS):
-#                     play()
-#                 if QUIT_BUTTON.checkForInput(MENU_MOUSE_POS):
-#                     pygame.quit()
-#                     sys.exit()
-
-#         pygame.display.update()
 
 def iterate():
     glMatrixMode(GL_PROJECTION)
@@ -311,11 +264,12 @@ def main_menu():
                         pygame.quit()
                         quit()
 
+        glClearColor(0.0706, 0.6509, 0.1608, 1.0)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-        glLoadIdentity() #untuk mereset semua posisi grafik/boundaries
-        iterate() #fungsi looping
+        glLoadIdentity()
+        iterate()
         button()
-        drawText('Whack-a-Mole', -80, 100, 0, 255, 100,)
+        drawText('Whack-a-Mole', -80, 100, 255, 255, 255,)
         drawText('Start', -24, 10, 0, 0, 0,)
         drawText('Quit', -24, -70, 0, 0, 0,)
 
